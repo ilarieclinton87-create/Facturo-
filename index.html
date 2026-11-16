@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facturo</title>
+
+<style>
+:root {
+  --primary: #2563eb;
+  --dark: #172033;
+  --bg: #f3f6fb;
+  --white: #ffffff;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --green: #15803d;
+  --red: #dc2626;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--dark);
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+}
+
+header {
+  background: var(--dark);
+  color: white;
+  padding: 18px 16px;
+}
+
+.header-inner,
+main {
+  width: 100%;
+  max-width: 1000px;
+  margin: auto;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 25px;
+}
+
+header p {
+  margin: 6px 0 0;
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+main {
+  padding: 16px;
+}
+
+nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 14px;
+  background: var(--primary);
+  color: white;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+nav button {
+  flex: 1;
+  min-width: max-content;
+  background: white;
+  color: var(--dark);
+  border: 1px solid var(--border);
+}
+
+nav button.active {
+  background: var(--primary);
+  color: white;
+}
+
+.panel,
+.stat-card,
+.invoice-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  margin: 0;
+  padding: 15px;
+  min-width: 0;
+}
+
+.stat-card p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.stat-card strong {
+  display: block;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin: 13px 0 6px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px;
+  background: white;
+  color: var(--dark);
+  font: inherit;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 85px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.secondary {
+  background: #e2e8f0;
+  color: var(--dark);
+}
+
+.danger {
+  background: var(--red);
+}
+
+.success {
+  background: var(--green);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.invoice-card h3 {
+  margin: 0 0 8px;
+}
+
+.invoice-card p {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.empty {
+  padding: 20px 5px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 18px 0;
+}
+
+#message {
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  display: none;
+  overflow-wrap: anywhere;
+}
+
+#message.show {
+  display: block;
+  background: #dcfce7;
+  color: #166534;
+}
+
+#message.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Facture imprimable */
+
+#invoicePreview {
+  background: white;
+  color: #111827;
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.invoice-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.invoice-heading h2 {
+  margin: 0 0 8px;
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+}
+
+.invoice-table th,
+.invoice-table td {
+  padding: 12px 6px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.invoice-table th:last-child,
+.invoice-table td:last-child {
+  text-align: right;
+}
+
+.invoice-total {
+  text-align: right;
+  font-size: 21px;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+@media (min-width: 650px) {
+  .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media print {
+  body {
+    background: white;
+    font-size: 14px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  header,
+  nav,
+  footer,
+  #dashboardPanel,
+  #newPanel,
+  #historyPanel,
+  #message,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    padding: 0;
+    max-width: none;
+  }
+
+  #previewPanel {
+    display: block !important;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #invoicePreview {
+    padding: 0;
+  }
+}
+
+.form-group { min-width: 0; }
+#paymentSummary {
+  margin-top: 12px; padding: 12px; border-radius: 8px;
+  background: #eff6ff; color: #1e40af; line-height: 1.6;
+}
+small { color: var(--muted); display: block; margin-top: 5px; }
+.stat-card strong { white-space: pre-line; }
+.badge.paid { background: #dcfce7; color: #166534; }
+.badge.partial { background: #fef3c7; color: #92400e; }
+.badge.unpaid { background: #fee2e2; color: #991b1b; }
+#paymentSummary { white-space: pre-line; }
+#paymentSummary.warn { background: #fef2f2; color: #991b1b; }
+.payment-box { margin: 20px 0 0 auto; width: 100%; max-width: 340px; }
+.payment-box .row { display: flex; justify-content: space-between; gap: 12px;
+  padding: 7px 0; border-bottom: 1px solid #ddd; }
+.payment-box .row span:last-child { text-align: right; overflow-wrap: anywhere; }
+.userbar { display: flex; gap: 10px; align-items: center; margin-top: 8px; font-size: 12px; color: #cbd5e1; flex-wrap: wrap; }
+.userbar button { padding: 6px 10px; min-height: 32px; background: #334155; }
+#diagnosticBox { white-space: pre-wrap; overflow-wrap: anywhere; background: #f8fafc;
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 12px; }
+button { min-height: 42px; }
+input:focus, select:focus, textarea:focus, button:focus-visible {
+  outline: 2px solid #93c5fd; outline-offset: 2px;
+}
+@media (max-width: 520px) {
+  main { padding: 12px; }
+  .panel { padding: 14px; }
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .full { grid-column: auto; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats .stat-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .stat-card strong { font-size: 17px; }
+  .actions button, .card-actions button { flex: 1 1 auto; }
+  #invoicePreview { padding: 14px; overflow-wrap: anywhere; }
+  .invoice-table th, .invoice-table td { padding: 8px 4px; font-size: 12px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>Facturo</h1>
+    <p>Créez et gérez vos factures simplement.</p>
+    <div id="userBar" class="userbar hidden">
+      <span id="userEmail"></span>
+      <button type="button" id="logoutButton">Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="message" role="status"></div>
+
+  <nav id="mainNav" class="no-print hidden">
+    <button type="button" class="active" data-tab="dashboardPanel">
+      Tableau de bord
+    </button>
+    <button type="button" data-tab="newPanel">
+      Nouvelle facture
+    </button>
+    <button type="button" data-tab="historyPanel">
+      Historique
+    </button>
+    <button type="button" data-tab="settingsPanel">
+      Paramètres
+    </button>
+  </nav>
+  <section id="authPanel" class="panel hidden">
+    <h2>Connexion</h2>
+    <p class="muted">Connecte-toi pour retrouver tes factures sur tous tes appareils.</p>
+    <p id="authNotice" class="muted"></p>
+    <form id="authForm">
+      <label for="authEmail">E-mail</label>
+      <input id="authEmail" type="email" autocomplete="email" placeholder="nom@exemple.com">
+      <label for="authPassword">Mot de passe</label>
+      <input id="authPassword" type="password" autocomplete="current-password" placeholder="6 caractères minimum">
+      <div class="actions">
+        <button type="submit">Se connecter</button>
+        <button type="button" id="signupButton" class="secondary">Créer un compte</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="dashboardPanel" class="panel hidden">
+    <h2>Tableau de bord</h2>
+
+    <div class="stats">
+      <div class="stat-card">
+        <p>Nombre de factures</p>
+        <strong id="statCount">0</strong>
+      </div>
+
+      <div class="stat-card">
+        <p>Total cumulé par devise</p>
+        <strong id="statTotal">0</strong>
+      </div>
+
+      <div class="stat-card">
+        <p>Factures du mois</p>
+        <strong id="statMonth">0</strong>
+      </div>
+
+      <div class="stat-card">
+        <p>Facture récente</p>
+        <strong id="statLatest">Aucune</strong>
+      </div>
+      <div class="stat-card">
+        <p>Montant encaissé (par devise)</p>
+        <strong id="statPaid">0</strong>
+      </div>
+      <div class="stat-card">
+        <p>Solde restant (par devise)</p>
+        <strong id="statDue">0</strong>
+      </div>
+      <div class="stat-card">
+        <p>Factures impayées</p>
+        <strong id="statUnpaid">0</strong>
+      </div>
+      <div class="stat-card">
+        <p>Partiellement payées</p>
+        <strong id="statPartial">0</strong>
+      </div>
+      <div class="stat-card">
+        <p>Factures payées</p>
+        <strong id="statPaidCount">0</strong>
+      </div>
+    </div>
+
+    <h3>Factures récentes</h3>
+    <div id="recentInvoices"></div>
+
+    <div class="actions no-print">
+      <button type="button" id="quickNewButton">
+        Créer une facture
+      </button>
+    </div>
+  </section>
+  
+<section id="settingsPanel" class="panel hidden">
+  <h2>Profil de l’entreprise</h2>
+
+  <p class="muted">
+    Ces informations seront réutilisées automatiquement
+    sur les nouvelles factures.
+  </p>
+
+  <form id="settingsForm">
+    <label for="profileCompany">Nom de l’entreprise *</label>
+    <input id="profileCompany" maxlength="100" required
+           placeholder="Nom de votre entreprise">
+
+    <label for="profilePhone">Téléphone</label>
+    <input id="profilePhone" maxlength="40"
+           placeholder="Votre numéro de téléphone">
+
+    <label for="profileAddress">Adresse</label>
+    <textarea id="profileAddress" maxlength="300"
+              placeholder="Ville, quartier, adresse"></textarea>
+
+    <label for="profileEmail">E-mail</label>
+    <input id="profileEmail" type="email" maxlength="150"
+           placeholder="contact@exemple.com">
+
+    <label for="profileTax">Numéro d’identification fiscale</label>
+    <input id="profileTax" maxlength="100"
+           placeholder="Facultatif">
+
+    <div class="actions">
+      <button type="submit">Enregistrer le profil</button>
+    </div>
+  </form>
+
+
+</section>
+  <section id="newPanel" class="panel hidden">
+    <h2 id="formTitle">Nouvelle facture</h2>
+
+    <form id="invoiceForm">
+      <input type="hidden" id="editingId">
+
+      <div class="form-grid">
+        <div>
+          <label for="company">Votre entreprise *</label>
+          <input id="company" required maxlength="100"
+                 placeholder="Nom de l'entreprise">
+        </div>
+
+        <div>
+          <label for="client">Nom du client *</label>
+          <input id="client" required maxlength="100"
+                 placeholder="Nom du client">
+        </div>
+
+        <div>
+          <label for="number">Numéro de facture *</label>
+          <input id="number" required maxlength="50"
+                 placeholder="FAC-001">
+        </div>
+
+        <div>
+          <label for="date">Date *</label>
+          <input id="date" type="date" required>
+        </div>
+
+        <div class="full">
+          <label for="currency">Devise *</label>
+          <select id="currency" required>
+            <option value="XOF">XOF — Franc CFA</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="USD">USD — Dollar américain</option>
+          </select>
+        </div>
+
+        <div class="full">
+          <label for="description">Description *</label>
+          <textarea id="description" required maxlength="500"
+                    placeholder="Description du produit ou service"></textarea>
+        </div>
+
+        <div>
+          <label for="quantity">Quantité *</label>
+          <input id="quantity" type="number" min="1" step="1"
+                 value="1" required>
+        </div>
+
+        <div>
+          <label for="price">Prix unitaire *</label>
+          <input id="price" type="text" inputmode="decimal"
+                 placeholder="Ex. 12.50 ou 12,50" required>
+        </div>
+      </div>
+
+      <p class="muted">
+        Le prix accepte le point ou la virgule comme séparateur décimal.
+      </p>
+
+<div class="form-group">
+  <label for="paidAmount">Montant déjà payé</label>
+  <input
+    id="paidAmount"
+    type="text"
+    inputmode="decimal"
+    value="0"
+    placeholder="Ex. 5000 ou 12,50"
+  >
+  <small>Montant déjà reçu du client (point ou virgule acceptés).</small>
+</div>
+
+<div class="form-group">
+  <label for="paymentStatus">Statut du paiement</label>
+  <select id="paymentStatus">
+    <option value="unpaid">Impayée</option>
+    <option value="partial">Partiellement payée</option>
+    <option value="paid">Payée</option>
+  </select>
+</div>
+
+<div id="paymentSummary">
+  Solde restant : 0 XOF
+</div>
+
+      
+      <div class="actions">
+        <button type="submit" id="saveButton">
+          Enregistrer la facture
+        </button>
+
+        <button type="button" id="cancelEditButton"
+                class="secondary hidden">
+          Annuler la modification
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section id="historyPanel" class="panel hidden">
+    <h2>Historique des factures</h2>
+
+    <div id="historyList"></div>
+
+    <hr>
+
+    <h3>Sauvegardes</h3>
+    <p class="muted">
+      Exporte tes factures dans un fichier JSON. L'import ajoute les factures
+      à ton compte sans rien effacer (ex. tes anciennes sauvegardes Facturo V2).
+    </p>
+
+    <div class="actions">
+      <button type="button" id="exportBackupButton">
+        Exporter la sauvegarde
+      </button>
+
+      <button type="button" id="chooseBackupButton"
+              class="secondary">
+        Importer une sauvegarde
+      </button>
+    </div>
+
+    <input type="file" id="backupFileInput"
+           accept=".json,application/json" class="hidden">
+  </section>
+
+  <section id="previewPanel" class="panel hidden">
+    <div class="actions no-print">
+      <button type="button" id="backButton" class="secondary">
+        Retour
+      </button>
+      <button type="button" id="pdfButton">
+        Imprimer / Enregistrer en PDF
+      </button>
+    </div>
+
+    <div id="invoicePreview"></div>
+  </section>
+</main>
+
+<footer>
+  Facturo — Vos factures, en ligne et sécurisées
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ====== À REMPLIR UNE SEULE FOIS (Supabase > Project Settings > API) ======
+  const SUPABASE_URL = "https://elrxeqmltjkglgpaaylm.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_0Ee42dH7Z_urxWoQBwSIFQ_SVRaub28";
+  // Utilise uniquement la clé « anon / public », JAMAIS la clé « service_role ».
+  // =========================================================================
+
+  const $ = id => document.getElementById(id);
+
+  let sb = null;              // client Supabase
+  let user = null;            // utilisateur connecté
+  let cache = [];             // factures du compte (copie en mémoire)
+  let profile = {};           // profil entreprise du compte
+  let currentPreviewId = null;
+  let previousPanel = "historyPanel";
+  let messageTimer = null;
+
+  function showMessage(text, isError = false) {
+    const box = $("message");
+    box.textContent = text;
+    box.className = "show" + (isError ? " error" : "");
+    if (messageTimer) clearTimeout(messageTimer);
+    messageTimer = setTimeout(() => { box.className = ""; }, 5000);
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[char]);
+  }
+
+  function roundMoney(value) {
+    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+  }
+
+  function parsePrice(value) {
+    let text = String(value ?? "").trim().replace(/[\s\u00A0]/g, "");
+    if (!text || !/^\d+(?:[.,]\d+)?$/.test(text)) return NaN;
+    const result = Number(text.replace(",", "."));
+    return Number.isFinite(result) && result >= 0 ? result : NaN;
+  }
+
+  function money(value, currency) {
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return "Montant invalide";
+    try {
+      return new Intl.NumberFormat("fr-FR", {
+        style: "currency", currency: currency || "XOF",
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+      }).format(amount);
+    } catch (error) {
+      return amount.toFixed(2) + " " + (currency || "XOF");
+    }
+  }
+
+  function localDate() {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString().slice(0, 10);
+  }
+
+  // Calcul unique du paiement, utilisé partout (formulaire, stockage, sauvegarde).
+  function computePayment(total, paidInput) {
+    let paid = Number(paidInput);
+    if (!Number.isFinite(paid) || paid < 0) paid = 0;
+    paid = roundMoney(Math.min(paid, total));
+    const remaining = roundMoney(Math.max(0, total - paid));
+    const status = paid <= 0 ? "unpaid" : (remaining === 0 ? "paid" : "partial");
+    return { paidAmount: paid, remainingAmount: remaining, paymentStatus: status };
+  }
+
+  // Champ « montant payé » : vide = 0, sinon même règle que le prix (point ou virgule).
+  function parsePaid(value) {
+    const text = String(value ?? "").trim();
+    return text === "" ? 0 : parsePrice(text);
+  }
+
+  function normalizeInvoice(invoice, index) {
+    const quantity = Number(invoice.quantity);
+    const price = parsePrice(invoice.price);
+    const currency = String(invoice.currency || "XOF");
+    const total = Number.isFinite(quantity) && quantity >= 1 &&
+      Number.isFinite(price) ? roundMoney(quantity * price) :
+      roundMoney(Number(invoice.total) || 0);
+
+    // Les factures anciennes (V2 / V2.1) n'ont pas de données de paiement : elles passent en « Impayée ».
+    const payment = computePayment(total,
+      invoice.paidAmount ?? invoice.totalpaidAmount ?? 0);
+
+    const hasId = invoice.id !== undefined && invoice.id !== null && String(invoice.id) !== "";
+    return {
+      ...invoice,
+      id: hasId ? String(invoice.id) : "legacy-" + (index ?? 0) + "-" + String(invoice.number || ""),
+      company: String(invoice.company || ""),
+      client: String(invoice.client || ""),
+      number: String(invoice.number || ""),
+      date: String(invoice.date || ""),
+      currency,
+      description: String(invoice.description || ""),
+      quantity: Number.isFinite(quantity) && quantity >= 1 ? quantity : 1,
+      price: Number.isFinite(price) ? price : 0,
+      total,
+      ...payment
+    };
+  }
+
+
+  function fromRow(r) {
+    return normalizeInvoice({
+      id: r.id, company: r.company, client: r.client, number: r.number,
+      date: r.date, currency: r.currency, description: r.description,
+      quantity: r.quantity, price: r.price, total: r.total,
+      paidAmount: r.paid_amount, createdAt: r.created_at, updatedAt: r.updated_at
+    });
+  }
+
+  function toRow(d) {
+    return {
+      company: d.company, client: d.client, number: d.number, date: d.date,
+      currency: d.currency, description: d.description,
+      quantity: d.quantity, price: d.price, paid_amount: d.paidAmount
+    };
+  }
+
+  function getInvoices() { return cache.slice(); }
+  function loadCompanyProfile() { return profile || {}; }
+
+  function friendlyError(error) {
+    const m = String((error && error.message) || error || "");
+    if (error && error.code === "23505") return "Ce numéro de facture existe déjà.";
+    if (/Invalid login credentials/i.test(m)) return "E-mail ou mot de passe incorrect.";
+    if (/Email not confirmed/i.test(m)) return "Confirme d'abord ton e-mail (lien reçu par message), puis reconnecte-toi.";
+    if (/already registered/i.test(m)) return "Un compte existe déjà avec cet e-mail.";
+    if (/at least 6|weak password|Password should/i.test(m)) return "Mot de passe trop court (6 caractères minimum).";
+    if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return "Pas de connexion internet. Réessaie.";
+    return m || "Une erreur est survenue.";
+  }
+
+  function formatDate(date) {
+    if (!date) return "Date inconnue";
+    const parsed = new Date(date + "T12:00:00");
+    return Number.isNaN(parsed.getTime()) ? escapeHTML(date) :
+      parsed.toLocaleDateString("fr-FR");
+  }
+
+  function paymentLabel(status) {
+    return ({ unpaid: "Impayée", partial: "Partiellement payée", paid: "Payée" })[status] || "Impayée";
+  }
+
+  function calculatePayment(total, paidInput) {
+    const paid = parsePaid(paidInput);
+    if (!Number.isFinite(paid)) {
+      throw new Error("Le montant déjà payé doit être un nombre positif ou nul (ex. 5000 ou 12,50).");
+    }
+    if (roundMoney(paid) > total) {
+      throw new Error("Le montant déjà payé ne peut pas dépasser le total de la facture.");
+    }
+    return computePayment(total, paid);
+  }
+
+  function currentFormTotal() {
+    const quantity = Number($("quantity").value);
+    const price = parsePrice($("price").value);
+    return Number.isInteger(quantity) && quantity > 0 && Number.isFinite(price)
+      ? roundMoney(quantity * price) : 0;
+  }
+
+  function updatePaymentSummary() {
+    const box = $("paymentSummary");
+    const currency = $("currency").value;
+    const total = currentFormTotal();
+    const paid = parsePaid($("paidAmount").value);
+
+    if (!Number.isFinite(paid)) {
+      box.textContent = "Montant payé invalide. Exemple : 5000 ou 12,50.";
+      box.classList.add("warn");
+      return;
+    }
+    const payment = computePayment(total, paid);
+    let text = "Total : " + money(total, currency) +
+      "\nDéjà payé : " + money(payment.paidAmount, currency) +
+      "\nSolde restant : " + money(payment.remainingAmount, currency);
+    const tooMuch = roundMoney(paid) > total;
+    if (tooMuch) text += "\n⚠ Le montant payé dépasse le total de la facture.";
+    box.textContent = text;
+    box.classList.toggle("warn", tooMuch);
+    $("paymentStatus").value = payment.paymentStatus;
+  }
+
+  function syncPaidAmountFromStatus() {
+    const total = currentFormTotal();
+    const status = $("paymentStatus").value;
+    if (status === "unpaid") $("paidAmount").value = "0";
+    if (status === "paid") $("paidAmount").value = String(total);
+    if (status === "partial") {
+      let paid = parsePaid($("paidAmount").value);
+      if (!Number.isFinite(paid) || paid <= 0 || paid >= total) {
+        paid = roundMoney(total / 2);
+      }
+      $("paidAmount").value = String(paid);
+    }
+    updatePaymentSummary();
+  }
+
+  function readForm() {
+    const company = $("company").value.trim();
+    const client = $("client").value.trim();
+    const number = $("number").value.trim();
+    const date = $("date").value;
+    const currency = $("currency").value;
+    const description = $("description").value.trim();
+    const quantity = Number($("quantity").value);
+    const price = parsePrice($("price").value);
+
+    if (!company || !client || !number || !date || !currency || !description) {
+      throw new Error("Remplis tous les champs obligatoires.");
+    }
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      throw new Error("La quantité doit être un entier supérieur ou égal à 1.");
+    }
+    if (!Number.isFinite(price)) {
+      throw new Error("Prix invalide. Exemple : 12.50 ou 12,50.");
+    }
+    const dateCheck = new Date(date + "T12:00:00");
+    if (Number.isNaN(dateCheck.getTime()) || dateCheck.toISOString().slice(0, 10) !== date) {
+      throw new Error("La date saisie est invalide.");
+    }
+    const total = roundMoney(quantity * price);
+    if (!Number.isFinite(total)) throw new Error("Le montant total est invalide.");
+    const payment = calculatePayment(total, $("paidAmount").value || "0");
+
+    return {
+      company, client, number, date, currency, description, quantity, price, total,
+      ...payment
+    };
+  }
+
+
+  function showPanel(panelId) {
+    ["authPanel", "dashboardPanel", "newPanel", "historyPanel", "previewPanel", "settingsPanel"]
+      .forEach(id => $(id).classList.toggle("hidden", id !== panelId));
+    document.querySelectorAll("nav button").forEach(button => {
+      button.classList.toggle("active", button.dataset.tab === panelId);
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function loadProfileIntoForm() {
+    const profile = loadCompanyProfile();
+    $("profileCompany").value = profile.company || "";
+    $("profilePhone").value = profile.phone || "";
+    $("profileAddress").value = profile.address || "";
+    $("profileEmail").value = profile.email || "";
+    $("profileTax").value = profile.tax || "";
+  }
+
+  function resetForm() {
+    $("invoiceForm").reset();
+    $("editingId").value = "";
+    $("date").value = localDate();
+    $("quantity").value = "1";
+    $("paidAmount").value = "0";
+    $("currency").value = "XOF";
+    $("paymentStatus").value = "unpaid";
+    $("company").value = loadCompanyProfile().company || "";
+    $("formTitle").textContent = "Nouvelle facture";
+    $("saveButton").textContent = "Enregistrer la facture";
+    $("cancelEditButton").classList.add("hidden");
+    updatePaymentSummary();
+  }
+
+  function startEdit(id) {
+    const invoice = getInvoices().find(item => item.id === id);
+    if (!invoice) { showMessage("Facture introuvable.", true); return; }
+    $("editingId").value = invoice.id;
+    $("company").value = invoice.company;
+    $("client").value = invoice.client;
+    $("number").value = invoice.number;
+    $("date").value = invoice.date;
+    $("currency").value = invoice.currency;
+    $("description").value = invoice.description;
+    $("quantity").value = String(invoice.quantity);
+    $("price").value = String(invoice.price);
+    $("paidAmount").value = String(invoice.paidAmount);
+    $("paymentStatus").value = invoice.paymentStatus;
+    $("formTitle").textContent = "Modifier la facture";
+    $("saveButton").textContent = "Enregistrer les modifications";
+    $("cancelEditButton").classList.remove("hidden");
+    updatePaymentSummary();
+    showPanel("newPanel");
+  }
+
+  function invoiceCard(invoice, includeActions = true) {
+    const div = document.createElement("div");
+    div.className = "invoice-card";
+    const item = normalizeInvoice(invoice);
+    div.innerHTML = `
+      <h3>${escapeHTML(item.number)}</h3>
+      <p><strong>Client :</strong> ${escapeHTML(item.client)}</p>
+      <p><strong>Date :</strong> ${formatDate(item.date)}</p>
+      <p><strong>Total :</strong> ${money(item.total, item.currency)}</p>
+      <p><strong>Déjà payé :</strong> ${money(item.paidAmount, item.currency)}</p>
+      <p><strong>Solde restant :</strong> ${money(item.remainingAmount, item.currency)}</p>
+      <span class="badge ${escapeHTML(item.paymentStatus)}">${escapeHTML(item.currency)} · ${paymentLabel(item.paymentStatus)}</span>
+      ${includeActions ? `
+        <div class="card-actions no-print">
+          <button type="button" data-action="view" data-id="${escapeHTML(item.id)}">Voir</button>
+          <button type="button" class="secondary" data-action="edit" data-id="${escapeHTML(item.id)}">Modifier</button>
+          <button type="button" class="danger" data-action="delete" data-id="${escapeHTML(item.id)}">Supprimer</button>
+        </div>` : ""}`;
+    return div;
+  }
+
+  function renderDashboard() {
+    const invoices = getInvoices();
+    $("statCount").textContent = String(invoices.length);
+    const totals = {};
+    const paidTotals = {};
+    const remainingTotals = {};
+    invoices.forEach(invoice => {
+      const c = invoice.currency || "XOF";
+      totals[c] = roundMoney((totals[c] || 0) + invoice.total);
+      paidTotals[c] = roundMoney((paidTotals[c] || 0) + invoice.paidAmount);
+      remainingTotals[c] = roundMoney((remainingTotals[c] || 0) + invoice.remainingAmount);
+    });
+    const labels = Object.keys(totals).sort().map(c => money(totals[c], c));
+    $("statTotal").textContent = labels.length ? labels.join("\n") : "0";
+    const paidLabels = Object.keys(paidTotals).sort().map(c => money(paidTotals[c], c));
+    const dueLabels = Object.keys(remainingTotals).sort().map(c => money(remainingTotals[c], c));
+    $("statPaid").textContent = paidLabels.length ? paidLabels.join("\n") : "0";
+    $("statDue").textContent = dueLabels.length ? dueLabels.join("\n") : "0";
+    $("statUnpaid").textContent = String(invoices.filter(i => i.paymentStatus === "unpaid").length);
+    $("statPartial").textContent = String(invoices.filter(i => i.paymentStatus === "partial").length);
+    $("statPaidCount").textContent = String(invoices.filter(i => i.paymentStatus === "paid").length);
+    $("statMonth").textContent = String(invoices.filter(i =>
+      String(i.date || "").slice(0, 7) === localDate().slice(0, 7)).length);
+    const sorted = [...invoices].sort((a, b) =>
+      String(b.updatedAt || b.createdAt || b.date || "")
+        .localeCompare(String(a.updatedAt || a.createdAt || a.date || "")));
+    $("statLatest").textContent = sorted.length ? sorted[0].number : "Aucune";
+    const recent = $("recentInvoices");
+    recent.replaceChildren();
+    if (!sorted.length) recent.innerHTML = '<p class="empty">Aucune facture pour le moment.</p>';
+    else sorted.slice(0, 5).forEach(invoice => recent.appendChild(invoiceCard(invoice)));
+  }
+
+  function renderHistory() {
+    const invoices = getInvoices().sort((a, b) =>
+      String(b.createdAt || b.date || "").localeCompare(String(a.createdAt || a.date || "")));
+    const list = $("historyList");
+    list.replaceChildren();
+    if (!invoices.length) {
+      list.innerHTML = '<p class="empty">Ton historique est vide.</p>';
+      return;
+    }
+    invoices.forEach(invoice => list.appendChild(invoiceCard(invoice)));
+  }
+
+  function showPreview(id) {
+    const invoice = getInvoices().find(item => item.id === id);
+    if (!invoice) { showMessage("Facture introuvable.", true); return; }
+    currentPreviewId = id;
+    const profile = loadCompanyProfile();
+    $("invoicePreview").innerHTML = `
+      <div class="invoice-heading">
+        <div>
+          <h2>${escapeHTML(profile.company || invoice.company)}</h2>
+          ${profile.phone ? `<p>Téléphone : ${escapeHTML(profile.phone)}</p>` : ""}
+          ${profile.address ? `<p>Adresse : ${escapeHTML(profile.address)}</p>` : ""}
+          ${profile.email ? `<p>E-mail : ${escapeHTML(profile.email)}</p>` : ""}
+          ${profile.tax ? `<p>N° fiscal : ${escapeHTML(profile.tax)}</p>` : ""}
+          <hr>
+          <p>Facture destinée à :</p><strong>${escapeHTML(invoice.client)}</strong>
+        </div>
+        <div>
+          <h2>FACTURE</h2>
+          <p>Numéro : ${escapeHTML(invoice.number)}</p>
+          <p>Date : ${formatDate(invoice.date)}</p>
+        </div>
+      </div>
+      <table class="invoice-table">
+        <thead><tr><th>Description</th><th>Qté</th><th>Prix unitaire</th><th>Total</th></tr></thead>
+        <tbody><tr>
+          <td>${escapeHTML(invoice.description)}</td>
+          <td>${escapeHTML(invoice.quantity)}</td>
+          <td>${money(invoice.price, invoice.currency)}</td>
+          <td>${money(invoice.total, invoice.currency)}</td>
+        </tr></tbody>
+      </table>
+      <div class="invoice-total">Total : ${money(invoice.total, invoice.currency)}</div>
+      <div class="payment-box">
+        <div class="row"><span>Montant déjà payé</span><span>${money(invoice.paidAmount, invoice.currency)}</span></div>
+        <div class="row"><span><strong>Solde restant</strong></span><span><strong>${money(invoice.remainingAmount, invoice.currency)}</strong></span></div>
+        <div class="row"><span>Statut du paiement</span><span><strong>${paymentLabel(invoice.paymentStatus)}</strong></span></div>
+      </div>
+      <p style="margin-top:35px">Merci pour votre confiance.</p>`;
+    showPanel("previewPanel");
+  }
+
+
+  // ---------- Compte ----------
+  function showAuth(notice) {
+    $("mainNav").classList.add("hidden");
+    $("userBar").classList.add("hidden");
+    $("authNotice").textContent = notice || "";
+    showPanel("authPanel");
+  }
+
+  async function loadAll() {
+    const inv = await sb.from("invoices").select("*").order("created_at", { ascending: false });
+    if (inv.error) throw inv.error;
+    const prof = await sb.from("profiles").select("*").maybeSingle();
+    if (prof.error) throw prof.error;
+    cache = (inv.data || []).map(fromRow);
+    profile = prof.data ? {
+      company: prof.data.company || "", phone: prof.data.phone || "",
+      address: prof.data.address || "", email: prof.data.email || "", tax: prof.data.tax || ""
+    } : {};
+  }
+
+  async function handleSession(session) {
+    if (session && session.user) {
+      if (user && user.id === session.user.id) return;
+      user = session.user;
+      try {
+        await loadAll();
+      } catch (error) {
+        showMessage("Chargement impossible : " + friendlyError(error), true);
+        cache = []; profile = {};
+      }
+      $("userEmail").textContent = user.email || "";
+      $("mainNav").classList.remove("hidden");
+      $("userBar").classList.remove("hidden");
+      loadProfileIntoForm();
+      resetForm();
+      renderDashboard();
+      renderHistory();
+      showPanel("dashboardPanel");
+    } else {
+      user = null; cache = []; profile = {};
+      showAuth("");
+    }
+  }
+
+  function credentials() {
+    const email = $("authEmail").value.trim();
+    const password = $("authPassword").value;
+    if (!email || !password) throw new Error("Saisis ton e-mail et ton mot de passe.");
+    return { email, password };
+  }
+
+  $("authForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    if (!sb) return;
+    try {
+      const { error } = await sb.auth.signInWithPassword(credentials());
+      if (error) throw error;
+      $("authPassword").value = "";
+    } catch (error) {
+      showMessage(friendlyError(error), true);
+    }
+  });
+
+  $("signupButton").addEventListener("click", async function () {
+    if (!sb) return;
+    try {
+      const { data, error } = await sb.auth.signUp(credentials());
+      if (error) throw error;
+      $("authPassword").value = "";
+      if (!data.session) showMessage("Compte créé. Confirme ton e-mail si on te le demande, puis connecte-toi.");
+    } catch (error) {
+      showMessage(friendlyError(error), true);
+    }
+  });
+
+  $("logoutButton").addEventListener("click", async function () {
+    if (sb) await sb.auth.signOut();
+  });
+
+  // ---------- Profil ----------
+  $("settingsForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const p = {
+      company: $("profileCompany").value.trim(),
+      phone: $("profilePhone").value.trim(),
+      address: $("profileAddress").value.trim(),
+      email: $("profileEmail").value.trim(),
+      tax: $("profileTax").value.trim()
+    };
+    if (!p.company) { showMessage("Le nom de l'entreprise est obligatoire.", true); return; }
+    try {
+      const { error } = await sb.from("profiles").upsert(
+        { user_id: user.id, ...p, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" });
+      if (error) throw error;
+      profile = p;
+      $("company").value = p.company;
+      showMessage("Profil de l'entreprise enregistré.");
+    } catch (error) {
+      showMessage("Profil non enregistré : " + friendlyError(error), true);
+    }
+  });
+
+  // ---------- Factures ----------
+  $("invoiceForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const saveBtn = $("saveButton");
+    try {
+      const data = readForm();
+      const editingId = $("editingId").value;
+      const duplicate = cache.some(invoice =>
+        invoice.number.toLowerCase() === data.number.toLowerCase() && invoice.id !== editingId);
+      if (duplicate) throw new Error("Ce numéro de facture existe déjà.");
+      saveBtn.disabled = true;
+
+      if (editingId) {
+        const { data: row, error } = await sb.from("invoices")
+          .update({ ...toRow(data), updated_at: new Date().toISOString() })
+          .eq("id", editingId).select().single();
+        if (error) throw error;
+        const index = cache.findIndex(invoice => invoice.id === editingId);
+        if (index === -1) cache.push(fromRow(row)); else cache[index] = fromRow(row);
+        showMessage("Facture modifiée avec succès.");
+      } else {
+        const { data: row, error } = await sb.from("invoices")
+          .insert(toRow(data)).select().single();
+        if (error) throw error;
+        cache.unshift(fromRow(row));
+        showMessage("Facture enregistrée avec succès.");
+      }
+      resetForm();
+      renderDashboard();
+      renderHistory();
+      showPanel("dashboardPanel");
+    } catch (error) {
+      showMessage(friendlyError(error), true);
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  $("cancelEditButton").addEventListener("click", function () {
+    resetForm();
+    showPanel("historyPanel");
+  });
+
+  document.querySelectorAll("nav button").forEach(button => {
+    button.addEventListener("click", function () {
+      if (button.dataset.tab === "newPanel") resetForm();
+      if (button.dataset.tab === "dashboardPanel") renderDashboard();
+      if (button.dataset.tab === "historyPanel") renderHistory();
+      if (button.dataset.tab === "settingsPanel") loadProfileIntoForm();
+      showPanel(button.dataset.tab);
+    });
+  });
+
+  $("quickNewButton").addEventListener("click", function () {
+    resetForm();
+    showPanel("newPanel");
+  });
+
+  document.addEventListener("click", async function (event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const id = button.dataset.id;
+    const action = button.dataset.action;
+    if (action === "view") {
+      previousPanel = $("dashboardPanel").classList.contains("hidden") ? "historyPanel" : "dashboardPanel";
+      showPreview(id);
+    }
+    if (action === "edit") startEdit(id);
+    if (action === "delete") {
+      const invoice = cache.find(item => item.id === id);
+      if (!invoice) { showMessage("Facture introuvable.", true); return; }
+      if (!confirm("Supprimer la facture " + invoice.number + " ?")) return;
+      try {
+        const { error } = await sb.from("invoices").delete().eq("id", id);
+        if (error) throw error;
+        cache = cache.filter(item => item.id !== id);
+        renderDashboard();
+        renderHistory();
+        showMessage("Facture supprimée.");
+      } catch (error) {
+        showMessage("Suppression impossible : " + friendlyError(error), true);
+      }
+    }
+  });
+
+  $("backButton").addEventListener("click", () => showPanel(previousPanel));
+  $("pdfButton").addEventListener("click", function () {
+    if (!currentPreviewId) { showMessage("Aucune facture à imprimer.", true); return; }
+    window.print();
+  });
+
+  // ---------- Sauvegardes ----------
+  $("exportBackupButton").addEventListener("click", function () {
+    const backup = {
+      app: "Facturo", version: 3.0, exportedAt: new Date().toISOString(),
+      invoices: getInvoices()
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "facturo-sauvegarde-" + localDate() + ".json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showMessage("Export de la sauvegarde demandé.");
+  });
+
+  $("chooseBackupButton").addEventListener("click", () => $("backupFileInput").click());
+
+  // L'import AJOUTE les factures au compte (il n'efface rien). Les numéros déjà présents sont ignorés.
+  $("backupFileInput").addEventListener("change", async function () {
+    const file = this.files && this.files[0];
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      const imported = Array.isArray(parsed) ? parsed : parsed.invoices;
+      if (!Array.isArray(imported)) throw new Error("Ce fichier ne contient pas de liste de factures reconnue.");
+      const clean = imported.map(invoice => {
+        if (!invoice || typeof invoice !== "object" ||
+          !invoice.company || !invoice.client || !invoice.number ||
+          !invoice.date || !invoice.currency) {
+          throw new Error("Une facture de la sauvegarde est invalide.");
+        }
+        const quantity = Number(invoice.quantity);
+        const price = parsePrice(invoice.price);
+        if (!Number.isInteger(quantity) || quantity < 1 || !Number.isFinite(price)) {
+          throw new Error("Une facture contient une quantité ou un prix invalide.");
+        }
+        return normalizeInvoice({ ...invoice, quantity, price, total: roundMoney(quantity * price) });
+      });
+      const seen = new Set(cache.map(invoice => invoice.number.toLowerCase()));
+      const toAdd = [];
+      let skipped = 0;
+      clean.forEach(invoice => {
+        const key = invoice.number.toLowerCase();
+        if (seen.has(key)) { skipped++; return; }
+        seen.add(key);
+        toAdd.push(toRow(invoice));
+      });
+      if (!toAdd.length) { showMessage("Aucune nouvelle facture à importer (" + skipped + " déjà présente(s))."); return; }
+      if (!confirm("Importer " + toAdd.length + " facture(s) dans ton compte ?" +
+        (skipped ? " (" + skipped + " ignorée(s) : numéro déjà existant)" : ""))) return;
+      const { error } = await sb.from("invoices").insert(toAdd);
+      if (error) throw error;
+      await loadAll();
+      renderDashboard();
+      renderHistory();
+      showMessage(toAdd.length + " facture(s) importée(s)." + (skipped ? " " + skipped + " ignorée(s)." : ""));
+      showPanel("historyPanel");
+    } catch (error) {
+      showMessage(friendlyError(error), true);
+    } finally {
+      this.value = "";
+    }
+  });
+
+  ["quantity", "price", "currency", "paidAmount"].forEach(id => {
+    $(id).addEventListener("input", updatePaymentSummary);
+    $(id).addEventListener("change", updatePaymentSummary);
+  });
+  $("paymentStatus").addEventListener("change", syncPaidAmountFromStatus);
+
+  // ---------- Démarrage ----------
+  resetForm();
+  if (!window.supabase || typeof window.supabase.createClient !== "function") {
+    showAuth("Impossible de charger la bibliothèque Supabase. Vérifie ta connexion internet puis recharge la page.");
+  } else if (SUPABASE_URL.indexOf("COLLE_ICI") !== -1 || SUPABASE_ANON_KEY.indexOf("COLLE_ICI") !== -1) {
+    showAuth("Configuration manquante : ouvre ce fichier et remplace SUPABASE_URL et SUPABASE_ANON_KEY (en haut du script).");
+  } else {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Pas d'appel Supabase directement dans ce rappel : on le décale (recommandation de la bibliothèque).
+    sb.auth.onAuthStateChange(function (event, session) {
+      setTimeout(function () { handleSession(session); }, 0);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
